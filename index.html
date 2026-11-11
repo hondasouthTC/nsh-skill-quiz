@@ -325,11 +325,11 @@ body::before{
 </section>
 
 <div class="toast" id="toast"></div>
-<button class="verchip" id="verChip">v1.4.0</button>
+<button class="verchip" id="verChip">v1.4.1</button>
 
 <script src="skills.js"></script>
 <script>
-window.APP_VERSION = '1.4.0';
+window.APP_VERSION = '1.4.1';
 
 const KEY = 'nshQuiz.v2';
 const NICK_KEY = 'nshQuiz.nick.v1';
@@ -377,6 +377,14 @@ function buildQuiz(skills, len, seed) {
 
 /* ---------- 儲存 ---------- */
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (!d || !Array.isArray(d.questions) || !d.questions.length) return null;
+    if (!Array.isArray(d.answers)) d.answers = [];
+    return d;
+  } catch (e) { return null; }
+}
 function clearSaved() { try { localStorage.removeItem(KEY); } catch (e) {} }
 
 /* ---------- 畫面 ---------- */
@@ -425,6 +433,15 @@ function timerResume() {
   timerRun(Math.max(300, tRemain));
 }
 
+/* ---------- 圖示預載（避免載入時間吃掉作答秒數） ---------- */
+function preloadIcons(list) {
+  return Promise.all(list.map(src => new Promise(res => {
+    const im = new Image();
+    im.onload = im.onerror = () => res();
+    im.src = src;
+  })));
+}
+
 /* ---------- 開始 ---------- */
 function startQuiz() {
   const nickEl = $('#nick');
@@ -438,7 +455,14 @@ function startQuiz() {
   if (!qs.length) { toast('題庫資料不足'); return; }
   S = { seed, nick, questions: qs, idx: 0, answers: [] };
   save();
-  enterQuiz();
+
+  const btn = $('#btnStart');
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = '載入中…';
+  preloadIcons([...new Set(qs.map(q => q.ans.icon))]).then(() => {
+    btn.disabled = !$('#nick').value.trim(); btn.textContent = label;
+    enterQuiz();
+  });
 }
 
 function enterQuiz() {
@@ -609,7 +633,16 @@ function boot() {
   };
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
-  window.__quiz = { startQuiz, state: () => S, buildQuiz, show, enterResult, rank, OPTIONS, LIMIT };
+  // 重新整理／誤關頁面後續答
+  const prev = load();
+  if (prev && prev.nick && Array.isArray(prev.questions) && prev.questions.length
+      && Array.isArray(prev.answers) && prev.answers.length < prev.questions.length) {
+    S = prev;
+    S.idx = Math.min(S.answers.length, S.questions.length - 1);
+    enterQuiz();
+  }
+
+  window.__quiz = { startQuiz, state: () => S, buildQuiz, show, enterResult, rank, OPTIONS, LIMIT, resume: () => !!S };
 }
 document.addEventListener('DOMContentLoaded', boot);
 </script>
