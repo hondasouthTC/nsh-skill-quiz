@@ -309,7 +309,7 @@ body::before{
 
 <script src="skills.js"></script>
 <script>
-window.APP_VERSION = '1.0.1';
+window.APP_VERSION = '1.1.0';
 
 const KEY = 'nshQuiz.v1';
 const QUIZ_LEN = 30;
@@ -409,9 +409,7 @@ function paintQuestion() {
   const q = S.questions[S.idx];
   const a = q.ans;
   $('#qNo').textContent = S.idx + 1;
-  $('#qTags').innerHTML =
-    `<span class="ctag" data-c="${a.cat}">${a.cat}</span>` +
-    (a.job ? `<span class="ctag" data-c="職業">${a.job}</span>` : '');
+  $('#qTags').innerHTML = '';   // 不分類：不顯示職業／體系，全部混合出題
   const img = $('#qIcon');
   img.src = a.icon;
   img.alt = '技能圖示';
@@ -456,7 +454,7 @@ $('#opts').addEventListener('click', e => {
       <div class="txt">
         <span class="k">${ok ? '答對了' : '正確答案是'}</span>
         <span class="v">${q.ans.name}</span>
-        <span class="cat">${q.ans.cat}${q.ans.job ? '・' + q.ans.job : ''}</span>
+
       </div>
     </div>
     <button class="btn-next" id="btnNext">${last ? '看成績' : '下一題'}<small>${last ? '' : (S.idx + 2) + ' / ' + S.questions.length}</small></button>`;
