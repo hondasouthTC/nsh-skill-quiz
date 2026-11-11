@@ -145,5 +145,19 @@ window.NSH_SKILLS = [
   {name:"古刃千鋒",icon:"icons/sk144.png"},
   {name:"斷嶽雙絕",icon:"icons/sk145.png"},
   {name:"牽絲縛影",icon:"icons/sk146.png"},
-  {name:"千機馭器",icon:"icons/sk147.png"}
+  {name:"千機馭器",icon:"icons/sk147.png"},
+  {name:"聚蠱",icon:"icons/sk148.png"},
+  {name:"鐵騎",icon:"icons/sk149.png"},
+  {name:"力劈",icon:"icons/sk150.png"},
+  {name:"擒龍",icon:"icons/sk151.png"},
+  {name:"獅吼",icon:"icons/sk152.png"},
+  {name:"月輪",icon:"icons/sk153.png"},
+  {name:"無盡·滅",icon:"icons/sk154.png"},
+  {name:"無盡·閃",icon:"icons/sk155.png"},
+  {name:"蔽日",icon:"icons/sk156.png"},
+  {name:"彩翼",icon:"icons/sk157.png"},
+  {name:"鑄鏡",icon:"icons/sk158.png"},
+  {name:"攬雀尾",icon:"icons/sk159.png"},
+  {name:"善惡斷·白",icon:"icons/sk160.png"},
+  {name:"風雪驚濤",icon:"icons/sk161.png"}
 ];
