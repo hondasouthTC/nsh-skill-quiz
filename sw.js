@@ -1,6 +1,6 @@
-const VERSION = '1.1.0';
+const VERSION = '1.4.0';
 const CACHE = 'nshquiz-v' + VERSION;
-const ASSETS = ['./','./index.html','./skills.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+const ASSETS = ['./','./index.html','./skills.js','./bg.jpg','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install', e => {
   self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(()=>{}));

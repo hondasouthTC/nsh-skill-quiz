@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B0D11">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="逆水寒猜技能">
+<title>逆水寒・猜技能</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --ink:#0B0D11; --ink-2:#12161C; --ink-3:#1A1F27;
+  --paper:#EFE9D9; --paper-2:#DED6C2;
+  --gold:#C9A227; --gold-lt:#E8C867;
+  --red:#B8342A; --red-lt:#D9564A;
+  --jade:#3E7C7B; --jade-lt:#6FB3AE;
+  --line:rgba(239,233,217,.13);
+  --mx:rgba(239,233,217,.42);
+  --r:13px;
+}
+html,body{margin:0;padding:0;min-height:100%}
+body{
+  background:var(--ink);
+  color:var(--paper);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased; font-size:15px; line-height:1.5;
+  padding:calc(12px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+  overflow-x:hidden;
+}
+/* ===== 背景圖 ===== */
+.bgwrap{position:fixed;inset:0;z-index:0;overflow:hidden;background:#0B0D11;pointer-events:none}
+.bgwrap img{
+  width:100%;height:100%;object-fit:cover;object-position:center 28%;
+  filter:blur(3px) brightness(.5) saturate(.85);transform:scale(1.1);
+}
+.bgwrap::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(11,13,17,.66) 0%,rgba(11,13,17,.82) 46%,rgba(11,13,17,.95) 100%);
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:1;
+  background-image:radial-gradient(rgba(239,233,217,.05) .7px,transparent .7px);
+  background-size:3px 3px;opacity:.4;
+}
+.screen{position:relative;z-index:2;max-width:440px;margin:0 auto;display:none}
+.screen.on{display:block}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.hide{display:none!important}
+
+/* ===== 頂部 ===== */
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;min-height:34px}
+.brand{display:flex;align-items:baseline;gap:8px;min-width:0}
+.brand b{
+  font-family:"Songti TC","Noto Serif TC","Times New Roman",serif;
+  font-size:19px;font-weight:700;letter-spacing:.12em;color:var(--paper);
+}
+.brand span{font-size:10px;font-weight:800;letter-spacing:.2em;color:var(--gold);opacity:.8}
+.pill{
+  flex:none;font-size:11.5px;font-weight:800;letter-spacing:.04em;
+  border:1px solid var(--line);background:rgba(255,255,255,.06);
+  padding:5px 10px;border-radius:999px;color:var(--paper-2);
+}
+.pill b{color:var(--gold-lt);font-size:13px}
+
+/* ===== 劍痕進度（不揭露對錯） ===== */
+.trail{display:flex;gap:3px;margin:0 0 10px;height:4px}
+.trail i{flex:1;border-radius:2px;background:rgba(239,233,217,.1)}
+.trail i.done{background:rgba(239,233,217,.55)}
+.trail i.cur{background:var(--paper);box-shadow:0 0 8px rgba(239,233,217,.6)}
+
+/* ===== 計時 ===== */
+.timerrow{display:flex;align-items:center;gap:9px;margin:0 0 14px}
+.tbar{position:relative;flex:1;height:5px;border-radius:3px;background:rgba(239,233,217,.1);overflow:hidden}
+.tbar i{
+  position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:3px;
+  background:linear-gradient(90deg,#E8C867,#C9A227);
+  transition:width .06s linear,background .2s;
+}
+.tbar.warn i{background:linear-gradient(90deg,#E0645A,#B8342A)}
+.tsec{flex:none;font-size:12.5px;font-weight:900;letter-spacing:.02em;color:var(--gold-lt);min-width:44px;text-align:right}
+.tsec.warn{color:#FF8B80}
+.tsec small{font-size:9.5px;font-weight:800;opacity:.6;margin-left:1px}
+
+/* ===== 開始 ===== */
+.hero{padding-top:3vh}
+.hero .seal{
+  display:inline-flex;align-items:center;gap:8px;margin-bottom:18px;
+  border:1px solid rgba(201,162,39,.4);background:rgba(11,13,17,.42);
+  border-radius:6px;padding:6px 11px;font-size:10px;font-weight:800;letter-spacing:.2em;color:var(--gold-lt);
+  backdrop-filter:blur(6px);
+}
+.hero h1{
+  font-family:"Songti TC","Noto Serif TC",serif;
+  font-size:40px;line-height:1.12;font-weight:700;letter-spacing:.04em;margin:0 0 12px;
+  text-shadow:0 2px 18px rgba(0,0,0,.6);
+}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero p{font-size:13.5px;line-height:1.8;color:var(--mx);margin:0}
+.field{margin-top:22px}
+.field label{display:block;font-size:10px;font-weight:800;letter-spacing:.16em;color:var(--mx);margin:0 0 7px 2px}
+.field input{
+  width:100%;height:54px;border-radius:12px;border:1.5px solid var(--line);
+  background:rgba(255,255,255,.06);color:var(--paper);
+  font-size:16px;font-weight:700;letter-spacing:.02em;font-family:inherit;
+  padding:0 15px;outline:none;transition:border-color .16s,background .16s;
+}
+.field input::placeholder{color:rgba(239,233,217,.28);font-weight:600}
+.field input:focus{border-color:rgba(201,162,39,.68);background:rgba(201,162,39,.09)}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:16px 0 0}
+.spec{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:11px;padding:11px 13px;backdrop-filter:blur(4px)}
+.spec span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.16em;color:var(--mx);margin-bottom:3px}
+.spec b{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.spec b small{font-size:11px;font-weight:700;color:var(--mx);margin-left:5px}
+.btn-start{
+  width:100%;height:56px;margin-top:14px;border:0;border-radius:var(--r);
+  background:linear-gradient(180deg,#D9564A,#A62C22);color:#fff;
+  font-size:16px;font-weight:800;letter-spacing:.1em;
+  box-shadow:0 12px 26px -14px rgba(184,52,42,.95), inset 0 1px 0 rgba(255,255,255,.22);
+  transition:transform .1s,opacity .16s,background .16s;
+}
+.btn-start:active{transform:translateY(1px)}
+.btn-start:disabled{
+  background:linear-gradient(180deg,#4A4F58,#33383F);color:rgba(255,255,255,.55);
+  box-shadow:none;
+}
+.note{font-size:11.5px;line-height:1.75;color:rgba(239,233,217,.45);margin:14px 2px 0}
+.note b{color:rgba(239,233,217,.78);font-weight:700}
+
+/* ===== 題目 ===== */
+.qhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}
+.qidx{font-size:11.5px;font-weight:800;letter-spacing:.06em;color:var(--mx);flex:none}
+.qidx b{color:var(--paper);font-size:14px}
+
+.stage{
+  position:relative;border-radius:18px;padding:22px 16px 18px;text-align:center;
+  background:
+    radial-gradient(80% 60% at 50% 0%, rgba(201,162,39,.1), transparent 70%),
+    linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+  border:1px solid var(--line);
+  box-shadow:0 22px 44px -30px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.07);
+  backdrop-filter:blur(4px);
+}
+.iconwrap{
+  width:132px;height:132px;margin:0 auto 14px;position:relative;
+  border-radius:16px;padding:3px;
+  background:linear-gradient(160deg, rgba(201,162,39,.85), rgba(201,162,39,.18) 45%, rgba(239,233,217,.12));
+  box-shadow:0 14px 30px -18px rgba(0,0,0,.9);
+}
+.iconwrap img{width:100%;height:100%;display:block;border-radius:13px;object-fit:cover;background:#0E1218}
+.iconwrap::after{
+  content:'';position:absolute;inset:-9px;border-radius:22px;pointer-events:none;
+  border:1px solid rgba(201,162,39,.16);
+}
+.ask{font-size:12px;font-weight:800;letter-spacing:.2em;color:var(--mx)}
+
+/* 超時提示 */
+.tflash{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);
+  font-family:"Songti TC",serif;font-size:30px;font-weight:900;letter-spacing:.1em;
+  color:#fff;background:rgba(184,52,42,.92);padding:6px 18px;border-radius:8px;
+  box-shadow:0 12px 30px -12px rgba(0,0,0,.9);opacity:0;pointer-events:none;
+  transition:opacity .12s;white-space:nowrap;
+}
+.tflash.on{opacity:1}
+
+.opts{display:grid;gap:9px;margin-top:15px}
+.opt{
+  position:relative;width:100%;min-height:56px;padding:12px 16px;text-align:left;
+  border-radius:12px;border:1.5px solid var(--line);
+  background:rgba(255,255,255,.055);color:var(--paper);
+  font-size:16.5px;font-weight:700;letter-spacing:.02em;line-height:1.35;
+  transition:border-color .14s, background .14s, transform .1s, opacity .14s;
+  display:flex;align-items:center;
+}
+.opt:active{transform:scale(.992)}
+.opt.locked{cursor:default}
+/* 選中：中性色，不揭露對錯 */
+.opt.sel{border-color:rgba(239,233,217,.85);background:rgba(239,233,217,.16);color:#fff}
+.opt.dim{opacity:.4}
+.opt.locked{pointer-events:none}
+
+/* ===== 成績 ===== */
+.res-hero{text-align:center;padding:10px 0 4px}
+.res-name{font-size:12.5px;font-weight:700;color:var(--mx);letter-spacing:.04em;margin-bottom:12px}
+.res-name b{color:var(--paper);font-size:15px;font-weight:800}
+.res-hero .rank{
+  display:inline-block;font-family:"Songti TC",serif;font-size:15px;font-weight:700;letter-spacing:.24em;
+  color:var(--gold-lt);border:1px solid rgba(201,162,39,.42);border-radius:5px;padding:5px 13px;margin-bottom:16px;
+  background:rgba(201,162,39,.08);
+}
+.res-score{font-size:64px;font-weight:800;letter-spacing:-.04em;line-height:1;color:#fff}
+.res-score small{font-size:20px;font-weight:700;color:var(--mx);letter-spacing:0;margin-left:4px}
+.res-sub{font-size:13px;color:var(--mx);margin-top:8px}
+.res-sub b{color:var(--gold-lt)}
+.bars{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:20px}
+.bar{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:11px;padding:11px 10px;text-align:center}
+.bar span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.12em;color:var(--mx);margin-bottom:3px}
+.bar b{font-size:19px;font-weight:800}
+.bar b.g{color:var(--gold-lt)} .bar b.r{color:var(--red-lt)} .bar b.o{color:#E9A15C}
+
+.review{margin-top:20px}
+.review h2{font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--mx);margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.review h2:after{content:'';flex:1;height:1px;background:var(--line)}
+.rv{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid rgba(239,233,217,.07)}
+.rv:last-child{border-bottom:0}
+.rv img{width:40px;height:40px;border-radius:8px;flex:none;background:#0E1218;border:1px solid var(--line)}
+.rv .t{min-width:0;flex:1}
+.rv .n{font-size:14.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
+.rv .y{font-size:11.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--red-lt)}
+.rv.ok .y{color:var(--jade-lt)}
+.rv.timeout .y{color:#E9A15C}
+.rv .x{font-size:15px;flex:none;font-weight:900;color:var(--red-lt)}
+.rv.ok .x{color:var(--gold-lt)}
+.acts2{display:flex;gap:9px;margin-top:18px}
+.btn-2{
+  flex:1;height:50px;border-radius:var(--r);border:1.5px solid var(--line);
+  background:rgba(255,255,255,.05);color:var(--paper);font-size:14px;font-weight:800;letter-spacing:.05em;
+}
+.btn-2.primary{background:linear-gradient(180deg,#D9564A,#A62C22);border-color:transparent;color:#fff}
+.btn-2:active{transform:translateY(1px)}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translate(-50%,10px);
+  background:rgba(20,24,30,.97);border:1px solid var(--line);color:#fff;
+  font-size:12.5px;font-weight:700;padding:10px 16px;border-radius:10px;z-index:70;
+  opacity:0;pointer-events:none;transition:.2s;max-width:86vw;text-align:center;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.verchip{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:calc(2px + env(safe-area-inset-bottom));
+  background:none;border:0;color:rgba(239,233,217,.22);font-size:9.5px;font-weight:700;letter-spacing:.12em;
+  padding:6px;z-index:5;
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
+@media (max-height:720px){
+  .hero{padding-top:1vh}
+  .hero h1{font-size:33px}
+  .iconwrap{width:112px;height:112px}
+  .stage{padding:16px 14px 14px}
+  .opt{min-height:50px;font-size:15.5px}
+  .field{margin-top:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="bgwrap"><img src="bg.jpg" alt=""></div>
+
+<!-- ===== 開始 ===== -->
+<section class="screen on" id="scStart">
+  <div class="hero">
+    <span class="seal">NSH SKILL QUIZ</span>
+    <h1>逆水寒<br><em>猜技能</em></h1>
+    <p>看圖示，選出正確的技能名稱。<br>全職業、江湖、群俠、絕技混合出題。</p>
+
+    <div class="field">
+      <label for="nick">你的暱稱</label>
+      <input id="nick" type="text" maxlength="12" placeholder="輸入暱稱，例如：小李" autocomplete="nickname" enterkeyhint="go">
+    </div>
+
+    <div class="specs">
+      <div class="spec"><span>題數</span><b id="spTotal">30<small>題</small></b></div>
+      <div class="spec"><span>每題限時</span><b>5<small>秒</small></b></div>
+    </div>
+
+    <button class="btn-start" id="btnStart" disabled>開始挑戰</button>
+    <p class="note">每題<b>只有 5 秒</b>，超時自動算答錯。過程中<b>不會公布答案</b>，全部答完後一次公布成績與全部正解。</p>
+  </div>
+</section>
+
+<!-- ===== 題目 ===== -->
+<section class="screen" id="scQuiz">
+  <div class="top">
+    <div class="brand"><b>逆水寒</b><span>猜技能</span></div>
+    <span class="pill"><b id="scNow">1</b> / <span id="scAll">0</span></span>
+  </div>
+  <div class="trail" id="trail"></div>
+
+  <div class="timerrow">
+    <div class="tbar" id="tbar"><i id="tbarFill"></i></div>
+    <span class="tsec num" id="tsec">5.0<small>s</small></span>
+  </div>
+
+  <div class="qhead">
+    <div class="qidx num">第 <b id="qNo">1</b> 題</div>
+  </div>
+
+  <div class="stage">
+    <div class="iconwrap"><img id="qIcon" alt="技能圖示"></div>
+    <div class="ask">這是哪個技能？</div>
+    <div class="tflash" id="tflash">超時</div>
+  </div>
+
+  <div class="opts" id="opts"></div>
+</section>
+
+<!-- ===== 成績 ===== -->
+<section class="screen" id="scResult">
+  <div class="top">
+    <div class="brand"><b>逆水寒</b><span>成績</span></div>
+  </div>
+  <div class="res-hero">
+    <div class="res-name"><b id="resName">—</b> 的成績</div>
+    <div class="rank" id="rankLabel">—</div>
+    <div class="res-score num"><span id="resRight">0</span><small>/ <span id="resTotal">0</span></small></div>
+    <div class="res-sub">正確率 <b id="resPct">0%</b></div>
+  </div>
+  <div class="bars">
+    <div class="bar"><span>答對</span><b class="g num" id="resOk">0</b></div>
+    <div class="bar"><span>答錯</span><b class="r num" id="resNg">0</b></div>
+    <div class="bar"><span>超時</span><b class="o num" id="resTo">0</b></div>
+  </div>
+  <div class="review" id="reviewWrap">
+    <h2>全部答案</h2>
+    <div id="reviewList"></div>
+  </div>
+  <div class="acts2">
+    <button class="btn-2" id="btnHome">回到首頁</button>
+    <button class="btn-2 primary" id="btnAgain">再玩一次</button>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+<button class="verchip" id="verChip">v1.4.0</button>
+
+<script src="skills.js"></script>
+<script>
+window.APP_VERSION = '1.4.0';
+
+const KEY = 'nshQuiz.v2';
+const NICK_KEY = 'nshQuiz.nick.v1';
+const QUIZ_LEN = 30;
+const OPTIONS = 4;
+const LIMIT = 5000;          // 每題 5 秒
+
+const $ = (s, r = document) => r.querySelector(s);
+let S = null;                 // 本次測驗狀態
+let locked = false;           // 本題是否已作答
+let tTick = null, tEndAt = 0, tRemain = LIMIT, tRunning = false;
+
+/* ---------- 亂數（可重現） ---------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function shuffle(arr, rnd) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ---------- 出題 ---------- */
+function buildQuiz(skills, len, seed) {
+  const pool = skills.filter(s => s && s.name && s.icon);
+  if (pool.length < OPTIONS) return [];
+  const rnd = mulberry32(seed);
+  const n = Math.min(len, pool.length);
+  const answers = shuffle(pool, rnd).slice(0, n);
+  const qs = answers.map(ans => {
+    const others = pool.filter(s => s.name !== ans.name);
+    const distr = shuffle(others, rnd).slice(0, OPTIONS - 1);
+    return { ans, opts: shuffle([ans, ...distr], rnd) };
+  });
+  return shuffle(qs, rnd);
+}
+
+/* ---------- 儲存 ---------- */
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function clearSaved() { try { localStorage.removeItem(KEY); } catch (e) {} }
+
+/* ---------- 畫面 ---------- */
+function show(n) {
+  [...document.querySelectorAll('.screen')].forEach(e => e.classList.remove('on'));
+  $('#sc' + n).classList.add('on');
+  window.scrollTo(0, 0);
+}
+function toast(m) {
+  const t = $('#toast'); t.textContent = m; t.classList.add('on');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 1800);
+}
+
+/* ---------- 計時器 ---------- */
+function paintTimer(ms) {
+  const pct = Math.max(0, Math.min(1, ms / LIMIT));
+  $('#tbarFill').style.width = (pct * 100).toFixed(2) + '%';
+  $('#tsec').innerHTML = (ms / 1000).toFixed(1) + '<small>s</small>';
+  const warn = ms <= 2000;
+  $('#tbar').classList.toggle('warn', warn);
+  $('#tsec').classList.toggle('warn', warn);
+}
+function timerRun(ms) {
+  timerStop();
+  tRemain = ms; tEndAt = performance.now() + ms; tRunning = true;
+  paintTimer(ms);
+  tTick = setInterval(() => {
+    const left = Math.max(0, tEndAt - performance.now());
+    tRemain = left;
+    paintTimer(left);
+    if (left <= 0) { timerStop(); onTimeout(); }
+  }, 50);
+}
+function timerStop() {
+  if (tTick) clearInterval(tTick);
+  tTick = null; tRunning = false;
+}
+function timerPause() {
+  if (!tRunning) return;
+  tRemain = Math.max(0, tEndAt - performance.now());
+  timerStop();
+}
+function timerResume() {
+  if (tRunning || locked || !S) return;
+  if (S.answers.length !== S.idx) return;
+  timerRun(Math.max(300, tRemain));
+}
+
+/* ---------- 開始 ---------- */
+function startQuiz() {
+  const nickEl = $('#nick');
+  const nick = (nickEl.value || '').trim();
+  if (!nick) { toast('請先輸入暱稱'); nickEl.focus(); return; }
+  try { localStorage.setItem(NICK_KEY, nick); } catch (e) {}
+
+  const skills = window.NSH_SKILLS || [];
+  const seed = (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0;
+  const qs = buildQuiz(skills, QUIZ_LEN, seed);
+  if (!qs.length) { toast('題庫資料不足'); return; }
+  S = { seed, nick, questions: qs, idx: 0, answers: [] };
+  save();
+  enterQuiz();
+}
+
+function enterQuiz() {
+  show('Quiz');
+  paintTrail();
+  paintQuestion();
+}
+
+function paintTrail() {
+  const total = S.questions.length;
+  const done = S.answers.length;
+  let html = '';
+  for (let i = 0; i < total; i++) {
+    if (i < done) html += '<i class="done"></i>';      // 只表示已作答，不揭露對錯
+    else if (i === done) html += '<i class="cur"></i>';
+    else html += '<i></i>';
+  }
+  $('#trail').innerHTML = html;
+  $('#scNow').textContent = Math.min(done + 1, total);
+  $('#scAll').textContent = total;
+}
+
+function paintQuestion() {
+  const q = S.questions[S.idx];
+  const a = q.ans;
+  $('#qNo').textContent = S.idx + 1;
+  const img = $('#qIcon');
+  img.src = a.icon;
+  img.alt = '技能圖示';
+  $('#opts').innerHTML = q.opts.map((o, i) =>
+    `<button class="opt" data-i="${i}">${o.name}</button>`
+  ).join('');
+  $('#tflash').classList.remove('on');
+  locked = false;
+  paintTrail();
+  timerRun(LIMIT);
+}
+
+/* ---------- 作答 ---------- */
+function commitAnswer(pickedIdx, isTimeout) {
+  if (locked || !S) return;
+  const q = S.questions[S.idx];
+  const picked = isTimeout ? null : q.opts[pickedIdx];
+  const ok = !!picked && picked.name === q.ans.name;
+  locked = true;
+  timerStop();
+
+  S.answers.push({
+    ok,
+    timeout: !!isTimeout,
+    picked: picked ? picked.name : '',
+    ans: q.ans.name,
+    icon: q.ans.icon
+  });
+  save();
+
+  // 只標示「選了哪個」，不揭露對錯
+  [...document.querySelectorAll('#opts .opt')].forEach(b => {
+    b.classList.add('locked');
+    if (!isTimeout && Number(b.dataset.i) === pickedIdx) b.classList.add('sel');
+    else b.classList.add('dim');
+  });
+  if (isTimeout) $('#tflash').classList.add('on');
+
+  const last = S.idx >= S.questions.length - 1;
+  const wait = isTimeout ? 620 : 220;
+  setTimeout(() => {
+    if (last) enterResult();
+    else { S.idx++; save(); enterQuiz(); }
+  }, wait);
+}
+
+function onTimeout() { commitAnswer(-1, true); }
+
+$('#opts').addEventListener('click', e => {
+  const btn = e.target.closest('.opt');
+  if (!btn || locked) return;
+  commitAnswer(Number(btn.dataset.i), false);
+});
+
+/* 切到背景時暫停計時，回來續算 */
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) timerPause();
+  else timerResume();
+});
+
+/* ---------- 成績 ---------- */
+function rank(pct) {
+  if (pct >= 95) return '江湖百曉生';
+  if (pct >= 85) return '一代宗師';
+  if (pct >= 70) return '名門高手';
+  if (pct >= 55) return '行走江湖';
+  if (pct >= 35) return '初入師門';
+  return '初來乍到';
+}
+
+function enterResult() {
+  timerStop();
+  show('Result');
+  const total = S.questions.length;
+  const right = S.answers.filter(a => a.ok).length;
+  const to = S.answers.filter(a => a.timeout).length;
+  const wrong = total - right;
+  const pct = total ? Math.round(right / total * 100) : 0;
+
+  $('#resName').textContent = S.nick || '玩家';
+  $('#rankLabel').textContent = rank(pct);
+  $('#resRight').textContent = right;
+  $('#resTotal').textContent = total;
+  $('#resPct').textContent = pct + '%';
+  $('#resOk').textContent = right;
+  $('#resNg').textContent = wrong;
+  $('#resTo').textContent = to;
+
+  // 全部答案（含答對的）
+  $('#reviewList').innerHTML = S.answers.map(a => {
+    const cls = a.ok ? 'ok' : (a.timeout ? 'timeout' : '');
+    const sub = a.ok ? '你選了：' + a.picked
+              : (a.timeout ? '未作答（超時）' : '你選了：' + a.picked);
+    return `<div class="rv ${cls}">
+      <img src="${a.icon}" alt="">
+      <div class="t">
+        <div class="n">${a.ans}</div>
+        <div class="y">${sub}</div>
+      </div>
+      <div class="x">${a.ok ? '✓' : '✕'}</div>
+    </div>`;
+  }).join('');
+
+  clearSaved();   // 成績已產出，避免下次誤續答
+  window.scrollTo(0, 0);
+}
+
+/* ---------- 啟動 ---------- */
+function boot() {
+  $('#verChip').textContent = 'v' + window.APP_VERSION;
+  const skills = window.NSH_SKILLS || [];
+  const len = Math.min(QUIZ_LEN, skills.length);
+  $('#spTotal').innerHTML = `${len}<small>題</small>`;
+
+  const nickEl = $('#nick');
+  try { nickEl.value = localStorage.getItem(NICK_KEY) || ''; } catch (e) {}
+  const syncBtn = () => { $('#btnStart').disabled = !nickEl.value.trim(); };
+  syncBtn();
+  nickEl.addEventListener('input', syncBtn);
+  nickEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && nickEl.value.trim()) { e.preventDefault(); startQuiz(); }
+  });
+
+  $('#btnStart').onclick = startQuiz;
+  $('#btnAgain').onclick = () => { S = null; startQuiz(); };
+  $('#btnHome').onclick = () => {
+    timerStop();
+    if (S) S = null;
+    $('#scStart').classList.add('on');
+    show('Start');
+    syncBtn();
+  };
+
+  $('#verChip').onclick = async () => {
+    if (!confirm('重新載入並清除快取？')) return;
+    try {
+      const rs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(rs.map(r => r.unregister()));
+      if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.map(k => caches.delete(k))); }
+    } catch (e) {}
+    location.reload();
+  };
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+  window.__quiz = { startQuiz, state: () => S, buildQuiz, show, enterResult, rank, OPTIONS, LIMIT };
+}
+document.addEventListener('DOMContentLoaded', boot);
+/* PV: 題目頁預覽 */
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const qs = buildQuiz(window.NSH_SKILLS || [], 30, 42);
+    S = { seed: 42, nick: '蔡小明', questions: qs, idx: 6, answers: [] };
+    for (let i = 0; i < 6; i++) S.answers.push({ ok: i % 2 === 0, timeout: false, picked: qs[i].opts[0].name, ans: qs[i].ans.name, icon: qs[i].ans.icon });
+    show('Quiz'); paintTrail(); paintQuestion(); timerRun(3200);
+  }, 150);
+});
+</script>
+</body>
+</html>

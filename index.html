@@ -24,20 +24,29 @@
 }
 html,body{margin:0;padding:0;min-height:100%}
 body{
-  background:
-    radial-gradient(120% 70% at 50% -8%, #1C232C 0%, var(--ink-2) 38%, var(--ink) 100%);
+  background:var(--ink);
   color:var(--paper);
   font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
   -webkit-font-smoothing:antialiased; font-size:15px; line-height:1.5;
   padding:calc(12px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
   overflow-x:hidden;
 }
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:radial-gradient(rgba(239,233,217,.05) .7px,transparent .7px);
-  background-size:3px 3px;opacity:.5;
+/* ===== 背景圖 ===== */
+.bgwrap{position:fixed;inset:0;z-index:0;overflow:hidden;background:#0B0D11;pointer-events:none}
+.bgwrap img{
+  width:100%;height:100%;object-fit:cover;object-position:center 28%;
+  filter:blur(3px) brightness(.5) saturate(.85);transform:scale(1.1);
 }
-.screen{position:relative;z-index:1;max-width:440px;margin:0 auto;display:none}
+.bgwrap::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(11,13,17,.66) 0%,rgba(11,13,17,.82) 46%,rgba(11,13,17,.95) 100%);
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:1;
+  background-image:radial-gradient(rgba(239,233,217,.05) .7px,transparent .7px);
+  background-size:3px 3px;opacity:.4;
+}
+.screen{position:relative;z-index:2;max-width:440px;margin:0 auto;display:none}
 .screen.on{display:block}
 .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
 .hide{display:none!important}
@@ -52,62 +61,77 @@ body::before{
 .brand span{font-size:10px;font-weight:800;letter-spacing:.2em;color:var(--gold);opacity:.8}
 .pill{
   flex:none;font-size:11.5px;font-weight:800;letter-spacing:.04em;
-  border:1px solid var(--line);background:rgba(255,255,255,.04);
+  border:1px solid var(--line);background:rgba(255,255,255,.06);
   padding:5px 10px;border-radius:999px;color:var(--paper-2);
 }
 .pill b{color:var(--gold-lt);font-size:13px}
 
-/* ===== 劍痕進度 ===== */
-.trail{display:flex;gap:3px;margin:0 0 14px;height:4px}
+/* ===== 劍痕進度（不揭露對錯） ===== */
+.trail{display:flex;gap:3px;margin:0 0 10px;height:4px}
 .trail i{flex:1;border-radius:2px;background:rgba(239,233,217,.1)}
-.trail i.ok{background:var(--gold)}
-.trail i.ng{background:var(--red)}
+.trail i.done{background:rgba(239,233,217,.55)}
 .trail i.cur{background:var(--paper);box-shadow:0 0 8px rgba(239,233,217,.6)}
 
+/* ===== 計時 ===== */
+.timerrow{display:flex;align-items:center;gap:9px;margin:0 0 14px}
+.tbar{position:relative;flex:1;height:5px;border-radius:3px;background:rgba(239,233,217,.1);overflow:hidden}
+.tbar i{
+  position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:3px;
+  background:linear-gradient(90deg,#E8C867,#C9A227);
+  transition:width .06s linear,background .2s;
+}
+.tbar.warn i{background:linear-gradient(90deg,#E0645A,#B8342A)}
+.tsec{flex:none;font-size:12.5px;font-weight:900;letter-spacing:.02em;color:var(--gold-lt);min-width:44px;text-align:right}
+.tsec.warn{color:#FF8B80}
+.tsec small{font-size:9.5px;font-weight:800;opacity:.6;margin-left:1px}
+
 /* ===== 開始 ===== */
-.hero{padding-top:4vh}
+.hero{padding-top:3vh}
 .hero .seal{
-  display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;
-  border:1px solid rgba(201,162,39,.4);background:rgba(201,162,39,.08);
+  display:inline-flex;align-items:center;gap:8px;margin-bottom:18px;
+  border:1px solid rgba(201,162,39,.4);background:rgba(11,13,17,.42);
   border-radius:6px;padding:6px 11px;font-size:10px;font-weight:800;letter-spacing:.2em;color:var(--gold-lt);
+  backdrop-filter:blur(6px);
 }
 .hero h1{
   font-family:"Songti TC","Noto Serif TC",serif;
-  font-size:40px;line-height:1.12;font-weight:700;letter-spacing:.04em;margin:0 0 14px;
+  font-size:40px;line-height:1.12;font-weight:700;letter-spacing:.04em;margin:0 0 12px;
+  text-shadow:0 2px 18px rgba(0,0,0,.6);
 }
 .hero h1 em{font-style:normal;color:var(--gold)}
 .hero p{font-size:13.5px;line-height:1.8;color:var(--mx);margin:0}
-.specs{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:22px 0 0}
-.spec{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.field{margin-top:22px}
+.field label{display:block;font-size:10px;font-weight:800;letter-spacing:.16em;color:var(--mx);margin:0 0 7px 2px}
+.field input{
+  width:100%;height:54px;border-radius:12px;border:1.5px solid var(--line);
+  background:rgba(255,255,255,.06);color:var(--paper);
+  font-size:16px;font-weight:700;letter-spacing:.02em;font-family:inherit;
+  padding:0 15px;outline:none;transition:border-color .16s,background .16s;
+}
+.field input::placeholder{color:rgba(239,233,217,.28);font-weight:600}
+.field input:focus{border-color:rgba(201,162,39,.68);background:rgba(201,162,39,.09)}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:16px 0 0}
+.spec{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:11px;padding:11px 13px;backdrop-filter:blur(4px)}
 .spec span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.16em;color:var(--mx);margin-bottom:3px}
 .spec b{font-size:17px;font-weight:800;letter-spacing:-.01em}
 .spec b small{font-size:11px;font-weight:700;color:var(--mx);margin-left:5px}
 .btn-start{
-  width:100%;height:56px;margin-top:16px;border:0;border-radius:var(--r);
+  width:100%;height:56px;margin-top:14px;border:0;border-radius:var(--r);
   background:linear-gradient(180deg,#D9564A,#A62C22);color:#fff;
   font-size:16px;font-weight:800;letter-spacing:.1em;
   box-shadow:0 12px 26px -14px rgba(184,52,42,.95), inset 0 1px 0 rgba(255,255,255,.22);
+  transition:transform .1s,opacity .16s,background .16s;
 }
 .btn-start:active{transform:translateY(1px)}
-.note{font-size:11.5px;line-height:1.7;color:rgba(239,233,217,.38);margin:14px 2px 0}
-.note b{color:rgba(239,233,217,.68);font-weight:700}
-.demoflag{
-  margin-top:14px;padding:10px 13px;border-radius:10px;
-  border:1px dashed rgba(201,162,39,.45);background:rgba(201,162,39,.07);
-  font-size:11.5px;line-height:1.65;color:rgba(232,200,103,.9);
+.btn-start:disabled{
+  background:linear-gradient(180deg,#4A4F58,#33383F);color:rgba(255,255,255,.55);
+  box-shadow:none;
 }
+.note{font-size:11.5px;line-height:1.75;color:rgba(239,233,217,.45);margin:14px 2px 0}
+.note b{color:rgba(239,233,217,.78);font-weight:700}
 
 /* ===== 題目 ===== */
 .qhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}
-.qtags{display:flex;gap:6px;min-width:0}
-.ctag{
-  font-size:10px;font-weight:800;letter-spacing:.12em;padding:4px 9px;border-radius:5px;
-  border:1px solid;white-space:nowrap;
-}
-.ctag[data-c="職業"]{color:var(--red-lt);border-color:rgba(217,86,74,.45);background:rgba(184,52,42,.12)}
-.ctag[data-c="江湖"]{color:var(--jade-lt);border-color:rgba(111,179,174,.4);background:rgba(62,124,123,.14)}
-.ctag[data-c="群俠"]{color:var(--gold-lt);border-color:rgba(201,162,39,.42);background:rgba(201,162,39,.1)}
-.ctag[data-c="絕技"]{color:#C8A2E8;border-color:rgba(200,162,232,.4);background:rgba(140,90,190,.14)}
 .qidx{font-size:11.5px;font-weight:800;letter-spacing:.06em;color:var(--mx);flex:none}
 .qidx b{color:var(--paper);font-size:14px}
 
@@ -115,9 +139,10 @@ body::before{
   position:relative;border-radius:18px;padding:22px 16px 18px;text-align:center;
   background:
     radial-gradient(80% 60% at 50% 0%, rgba(201,162,39,.1), transparent 70%),
-    linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+    linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
   border:1px solid var(--line);
   box-shadow:0 22px 44px -30px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.07);
+  backdrop-filter:blur(4px);
 }
 .iconwrap{
   width:132px;height:132px;margin:0 auto 14px;position:relative;
@@ -132,86 +157,68 @@ body::before{
 }
 .ask{font-size:12px;font-weight:800;letter-spacing:.2em;color:var(--mx)}
 
+/* 超時提示 */
+.tflash{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);
+  font-family:"Songti TC",serif;font-size:30px;font-weight:900;letter-spacing:.1em;
+  color:#fff;background:rgba(184,52,42,.92);padding:6px 18px;border-radius:8px;
+  box-shadow:0 12px 30px -12px rgba(0,0,0,.9);opacity:0;pointer-events:none;
+  transition:opacity .12s;white-space:nowrap;
+}
+.tflash.on{opacity:1}
+
 .opts{display:grid;gap:9px;margin-top:15px}
 .opt{
-  position:relative;width:100%;min-height:56px;padding:12px 46px 12px 16px;text-align:left;
+  position:relative;width:100%;min-height:56px;padding:12px 16px;text-align:left;
   border-radius:12px;border:1.5px solid var(--line);
-  background:rgba(255,255,255,.045);color:var(--paper);
+  background:rgba(255,255,255,.055);color:var(--paper);
   font-size:16.5px;font-weight:700;letter-spacing:.02em;line-height:1.35;
-  transition:border-color .16s, background .16s, transform .1s;
+  transition:border-color .14s, background .14s, transform .1s, opacity .14s;
   display:flex;align-items:center;
 }
 .opt:active{transform:scale(.992)}
-.opt .mark{
-  position:absolute;right:13px;top:50%;transform:translateY(-50%);
-  width:22px;height:22px;border-radius:50%;display:none;align-items:center;justify-content:center;
-  font-size:13px;font-weight:900;
-}
 .opt.locked{cursor:default}
-.opt.ok{border-color:var(--gold);background:rgba(201,162,39,.16);color:#fff}
-.opt.ok .mark{display:flex;background:var(--gold);color:#2A1D00}
-.opt.ng{border-color:rgba(184,52,42,.85);background:rgba(184,52,42,.16);color:#FFD9D4}
-.opt.ng .mark{display:flex;background:var(--red);color:#fff}
-.opt.dim{opacity:.42}
-@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
-.opt.ok,.opt.ng{animation:pop .26s ease}
-
-.verdict{
-  margin-top:13px;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:11px;
-  border:1px solid;animation:slide .24s ease;
-}
-@keyframes slide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.verdict.good{background:rgba(201,162,39,.11);border-color:rgba(201,162,39,.4)}
-.verdict.bad{background:rgba(184,52,42,.12);border-color:rgba(184,52,42,.42)}
-.verdict .stamp{
-  flex:none;width:42px;height:42px;border-radius:6px;display:flex;align-items:center;justify-content:center;
-  font-size:21px;font-weight:900;font-family:"Songti TC",serif;
-  transform:rotate(-6deg);
-}
-.verdict.good .stamp{background:var(--gold);color:#2A1D00}
-.verdict.bad .stamp{background:var(--red);color:#fff}
-.verdict .txt{min-width:0;flex:1}
-.verdict .k{font-size:10px;font-weight:800;letter-spacing:.16em;opacity:.6;display:block;margin-bottom:1px}
-.verdict .v{font-size:16px;font-weight:800;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.verdict .cat{font-size:11px;font-weight:700;opacity:.55}
-
-.btn-next{
-  width:100%;height:52px;margin-top:12px;border:0;border-radius:var(--r);
-  background:var(--paper);color:#131720;font-size:15px;font-weight:800;letter-spacing:.08em;
-}
-.btn-next:active{transform:translateY(1px)}
-.btn-next small{font-size:10.5px;font-weight:700;opacity:.5;margin-left:5px}
+/* 選中：中性色，不揭露對錯 */
+.opt.sel{border-color:rgba(239,233,217,.85);background:rgba(239,233,217,.16);color:#fff}
+.opt.dim{opacity:.4}
+.opt.locked{pointer-events:none}
 
 /* ===== 成績 ===== */
-.res-hero{text-align:center;padding:14px 0 6px}
+.res-hero{text-align:center;padding:10px 0 4px}
+.res-name{font-size:12.5px;font-weight:700;color:var(--mx);letter-spacing:.04em;margin-bottom:12px}
+.res-name b{color:var(--paper);font-size:15px;font-weight:800}
 .res-hero .rank{
   display:inline-block;font-family:"Songti TC",serif;font-size:15px;font-weight:700;letter-spacing:.24em;
   color:var(--gold-lt);border:1px solid rgba(201,162,39,.42);border-radius:5px;padding:5px 13px;margin-bottom:16px;
+  background:rgba(201,162,39,.08);
 }
 .res-score{font-size:64px;font-weight:800;letter-spacing:-.04em;line-height:1;color:#fff}
 .res-score small{font-size:20px;font-weight:700;color:var(--mx);letter-spacing:0;margin-left:4px}
 .res-sub{font-size:13px;color:var(--mx);margin-top:8px}
 .res-sub b{color:var(--gold-lt)}
-.bars{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:20px}
-.bar{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
-.bar span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.16em;color:var(--mx);margin-bottom:3px}
+.bars{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:20px}
+.bar{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:11px;padding:11px 10px;text-align:center}
+.bar span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.12em;color:var(--mx);margin-bottom:3px}
 .bar b{font-size:19px;font-weight:800}
-.bar b.g{color:var(--gold-lt)} .bar b.r{color:var(--red-lt)}
+.bar b.g{color:var(--gold-lt)} .bar b.r{color:var(--red-lt)} .bar b.o{color:#E9A15C}
 
 .review{margin-top:20px}
 .review h2{font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--mx);margin:0 0 10px;display:flex;align-items:center;gap:8px}
 .review h2:after{content:'';flex:1;height:1px;background:var(--line)}
 .rv{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid rgba(239,233,217,.07)}
 .rv:last-child{border-bottom:0}
-.rv img{width:38px;height:38px;border-radius:8px;flex:none;background:#0E1218;border:1px solid var(--line)}
+.rv img{width:40px;height:40px;border-radius:8px;flex:none;background:#0E1218;border:1px solid var(--line)}
 .rv .t{min-width:0;flex:1}
-.rv .n{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rv .y{font-size:11px;color:var(--red-lt);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rv .x{font-size:15px;flex:none;color:var(--red-lt);font-weight:900}
+.rv .n{font-size:14.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
+.rv .y{font-size:11.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--red-lt)}
+.rv.ok .y{color:var(--jade-lt)}
+.rv.timeout .y{color:#E9A15C}
+.rv .x{font-size:15px;flex:none;font-weight:900;color:var(--red-lt)}
+.rv.ok .x{color:var(--gold-lt)}
 .acts2{display:flex;gap:9px;margin-top:18px}
 .btn-2{
   flex:1;height:50px;border-radius:var(--r);border:1.5px solid var(--line);
-  background:rgba(255,255,255,.04);color:var(--paper);font-size:14px;font-weight:800;letter-spacing:.05em;
+  background:rgba(255,255,255,.05);color:var(--paper);font-size:14px;font-weight:800;letter-spacing:.05em;
 }
 .btn-2.primary{background:linear-gradient(180deg,#D9564A,#A62C22);border-color:transparent;color:#fff}
 .btn-2:active{transform:translateY(1px)}
@@ -225,7 +232,7 @@ body::before{
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .verchip{
   position:fixed;left:50%;transform:translateX(-50%);bottom:calc(2px + env(safe-area-inset-bottom));
-  background:none;border:0;color:rgba(239,233,217,.2);font-size:9.5px;font-weight:700;letter-spacing:.12em;
+  background:none;border:0;color:rgba(239,233,217,.22);font-size:9.5px;font-weight:700;letter-spacing:.12em;
   padding:6px;z-index:5;
 }
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
@@ -235,10 +242,13 @@ body::before{
   .iconwrap{width:112px;height:112px}
   .stage{padding:16px 14px 14px}
   .opt{min-height:50px;font-size:15.5px}
+  .field{margin-top:16px}
 }
 </style>
 </head>
 <body>
+
+<div class="bgwrap"><img src="bg.jpg" alt=""></div>
 
 <!-- ===== 開始 ===== -->
 <section class="screen on" id="scStart">
@@ -247,14 +257,18 @@ body::before{
     <h1>逆水寒<br><em>猜技能</em></h1>
     <p>看圖示，選出正確的技能名稱。<br>全職業、江湖、群俠、絕技混合出題。</p>
 
-    <div class="specs">
-      <div class="spec"><span>題數</span><b id="spTotal">30<small>題</small></b></div>
-      <div class="spec"><span>選項</span><b>4<small>選 1</small></b></div>
+    <div class="field">
+      <label for="nick">你的暱稱</label>
+      <input id="nick" type="text" maxlength="12" placeholder="輸入暱稱，例如：小李" autocomplete="nickname" enterkeyhint="go">
     </div>
 
-    <button class="btn-start" id="btnStart">開始挑戰</button>
-    <p class="note">每個人拿到的<b>題目順序與選項排列都不同</b>。答完一題會顯示正確答案，不論對錯都會進下一題。</p>
-    <div class="demoflag hide" id="demoFlag"></div>
+    <div class="specs">
+      <div class="spec"><span>題數</span><b id="spTotal">30<small>題</small></b></div>
+      <div class="spec"><span>每題限時</span><b>5<small>秒</small></b></div>
+    </div>
+
+    <button class="btn-start" id="btnStart" disabled>開始挑戰</button>
+    <p class="note">每題<b>只有 5 秒</b>，超時自動算答錯。過程中<b>不會公布答案</b>，全部答完後一次公布成績與全部正解。</p>
   </div>
 </section>
 
@@ -262,22 +276,26 @@ body::before{
 <section class="screen" id="scQuiz">
   <div class="top">
     <div class="brand"><b>逆水寒</b><span>猜技能</span></div>
-    <span class="pill"><b id="scNow">0</b> / <span id="scAll">0</span></span>
+    <span class="pill"><b id="scNow">1</b> / <span id="scAll">0</span></span>
   </div>
   <div class="trail" id="trail"></div>
 
+  <div class="timerrow">
+    <div class="tbar" id="tbar"><i id="tbarFill"></i></div>
+    <span class="tsec num" id="tsec">5.0<small>s</small></span>
+  </div>
+
   <div class="qhead">
-    <div class="qtags" id="qTags"></div>
     <div class="qidx num">第 <b id="qNo">1</b> 題</div>
   </div>
 
   <div class="stage">
     <div class="iconwrap"><img id="qIcon" alt="技能圖示"></div>
     <div class="ask">這是哪個技能？</div>
+    <div class="tflash" id="tflash">超時</div>
   </div>
 
   <div class="opts" id="opts"></div>
-  <div id="verdictSlot"></div>
 </section>
 
 <!-- ===== 成績 ===== -->
@@ -286,6 +304,7 @@ body::before{
     <div class="brand"><b>逆水寒</b><span>成績</span></div>
   </div>
   <div class="res-hero">
+    <div class="res-name"><b id="resName">—</b> 的成績</div>
     <div class="rank" id="rankLabel">—</div>
     <div class="res-score num"><span id="resRight">0</span><small>/ <span id="resTotal">0</span></small></div>
     <div class="res-sub">正確率 <b id="resPct">0%</b></div>
@@ -293,9 +312,10 @@ body::before{
   <div class="bars">
     <div class="bar"><span>答對</span><b class="g num" id="resOk">0</b></div>
     <div class="bar"><span>答錯</span><b class="r num" id="resNg">0</b></div>
+    <div class="bar"><span>超時</span><b class="o num" id="resTo">0</b></div>
   </div>
-  <div class="review hide" id="reviewWrap">
-    <h2>答錯的題目</h2>
+  <div class="review" id="reviewWrap">
+    <h2>全部答案</h2>
     <div id="reviewList"></div>
   </div>
   <div class="acts2">
@@ -305,21 +325,24 @@ body::before{
 </section>
 
 <div class="toast" id="toast"></div>
-<button class="verchip" id="verChip">v1.3.0</button>
+<button class="verchip" id="verChip">v1.4.0</button>
 
 <script src="skills.js"></script>
 <script>
-window.APP_VERSION = '1.3.0';
+window.APP_VERSION = '1.4.0';
 
-const KEY = 'nshQuiz.v1';
+const KEY = 'nshQuiz.v2';
+const NICK_KEY = 'nshQuiz.nick.v1';
 const QUIZ_LEN = 30;
 const OPTIONS = 4;
+const LIMIT = 5000;          // 每題 5 秒
 
 const $ = (s, r = document) => r.querySelector(s);
-let S = null;          // 本次測驗狀態
-let locked = false;    // 本題是否已作答
+let S = null;                 // 本次測驗狀態
+let locked = false;           // 本題是否已作答
+let tTick = null, tEndAt = 0, tRemain = LIMIT, tRunning = false;
 
-/* ---------- 亂數（可重現，同一人同一次測驗順序固定） ---------- */
+/* ---------- 亂數（可重現） ---------- */
 function mulberry32(a) {
   return function () {
     a |= 0; a = a + 0x6D2B79F5 | 0;
@@ -354,13 +377,7 @@ function buildQuiz(skills, len, seed) {
 
 /* ---------- 儲存 ---------- */
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
-function load() {
-  try {
-    const d = JSON.parse(localStorage.getItem(KEY) || 'null');
-    if (!d || !Array.isArray(d.questions) || !d.questions.length) return null;
-    return d;
-  } catch (e) { return null; }
-}
+function clearSaved() { try { localStorage.removeItem(KEY); } catch (e) {} }
 
 /* ---------- 畫面 ---------- */
 function show(n) {
@@ -373,20 +390,59 @@ function toast(m) {
   clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 1800);
 }
 
+/* ---------- 計時器 ---------- */
+function paintTimer(ms) {
+  const pct = Math.max(0, Math.min(1, ms / LIMIT));
+  $('#tbarFill').style.width = (pct * 100).toFixed(2) + '%';
+  $('#tsec').innerHTML = (ms / 1000).toFixed(1) + '<small>s</small>';
+  const warn = ms <= 2000;
+  $('#tbar').classList.toggle('warn', warn);
+  $('#tsec').classList.toggle('warn', warn);
+}
+function timerRun(ms) {
+  timerStop();
+  tRemain = ms; tEndAt = performance.now() + ms; tRunning = true;
+  paintTimer(ms);
+  tTick = setInterval(() => {
+    const left = Math.max(0, tEndAt - performance.now());
+    tRemain = left;
+    paintTimer(left);
+    if (left <= 0) { timerStop(); onTimeout(); }
+  }, 50);
+}
+function timerStop() {
+  if (tTick) clearInterval(tTick);
+  tTick = null; tRunning = false;
+}
+function timerPause() {
+  if (!tRunning) return;
+  tRemain = Math.max(0, tEndAt - performance.now());
+  timerStop();
+}
+function timerResume() {
+  if (tRunning || locked || !S) return;
+  if (S.answers.length !== S.idx) return;
+  timerRun(Math.max(300, tRemain));
+}
+
 /* ---------- 開始 ---------- */
-function newQuiz() {
+function startQuiz() {
+  const nickEl = $('#nick');
+  const nick = (nickEl.value || '').trim();
+  if (!nick) { toast('請先輸入暱稱'); nickEl.focus(); return; }
+  try { localStorage.setItem(NICK_KEY, nick); } catch (e) {}
+
   const skills = window.NSH_SKILLS || [];
   const seed = (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0;
   const qs = buildQuiz(skills, QUIZ_LEN, seed);
   if (!qs.length) { toast('題庫資料不足'); return; }
-  S = { seed, questions: qs, idx: 0, answers: [] };
+  S = { seed, nick, questions: qs, idx: 0, answers: [] };
   save();
   enterQuiz();
 }
 
 function enterQuiz() {
   show('Quiz');
-  locked = false;
   paintTrail();
   paintQuestion();
 }
@@ -396,7 +452,7 @@ function paintTrail() {
   const done = S.answers.length;
   let html = '';
   for (let i = 0; i < total; i++) {
-    if (i < done) html += `<i class="${S.answers[i].ok ? 'ok' : 'ng'}"></i>`;
+    if (i < done) html += '<i class="done"></i>';      // 只表示已作答，不揭露對錯
     else if (i === done) html += '<i class="cur"></i>';
     else html += '<i></i>';
   }
@@ -409,60 +465,64 @@ function paintQuestion() {
   const q = S.questions[S.idx];
   const a = q.ans;
   $('#qNo').textContent = S.idx + 1;
-  $('#qTags').innerHTML = '';   // 不分類：不顯示職業／體系，全部混合出題
   const img = $('#qIcon');
   img.src = a.icon;
   img.alt = '技能圖示';
   $('#opts').innerHTML = q.opts.map((o, i) =>
-    `<button class="opt" data-i="${i}"><span class="lb">${o.name}</span><span class="mark"></span></button>`
+    `<button class="opt" data-i="${i}">${o.name}</button>`
   ).join('');
-  $('#verdictSlot').innerHTML = '';
+  $('#tflash').classList.remove('on');
   locked = false;
+  paintTrail();
+  timerRun(LIMIT);
 }
 
 /* ---------- 作答 ---------- */
+function commitAnswer(pickedIdx, isTimeout) {
+  if (locked || !S) return;
+  const q = S.questions[S.idx];
+  const picked = isTimeout ? null : q.opts[pickedIdx];
+  const ok = !!picked && picked.name === q.ans.name;
+  locked = true;
+  timerStop();
+
+  S.answers.push({
+    ok,
+    timeout: !!isTimeout,
+    picked: picked ? picked.name : '',
+    ans: q.ans.name,
+    icon: q.ans.icon
+  });
+  save();
+
+  // 只標示「選了哪個」，不揭露對錯
+  [...document.querySelectorAll('#opts .opt')].forEach(b => {
+    b.classList.add('locked');
+    if (!isTimeout && Number(b.dataset.i) === pickedIdx) b.classList.add('sel');
+    else b.classList.add('dim');
+  });
+  if (isTimeout) $('#tflash').classList.add('on');
+
+  const last = S.idx >= S.questions.length - 1;
+  const wait = isTimeout ? 620 : 220;
+  setTimeout(() => {
+    if (last) enterResult();
+    else { S.idx++; save(); enterQuiz(); }
+  }, wait);
+}
+
+function onTimeout() { commitAnswer(-1, true); }
+
 $('#opts').addEventListener('click', e => {
   const btn = e.target.closest('.opt');
   if (!btn || locked) return;
-  const q = S.questions[S.idx];
-  const picked = q.opts[Number(btn.dataset.i)];
-  const ok = picked.name === q.ans.name;
-  locked = true;
+  commitAnswer(Number(btn.dataset.i), false);
+});
 
-  [...document.querySelectorAll('.opt')].forEach(b => {
-    b.classList.add('locked');
-    const o = q.opts[Number(b.dataset.i)];
-    if (o.name === q.ans.name) {
-      b.classList.add('ok');
-      b.querySelector('.mark').textContent = '✓';
-    } else if (b === btn) {
-      b.classList.add('ng');
-      b.querySelector('.mark').textContent = '✕';
-    } else {
-      b.classList.add('dim');
-    }
-  });
-
-  S.answers.push({ ok, picked: picked.name, ans: q.ans.name, icon: q.ans.icon, cat: q.ans.cat, job: q.ans.job });
-  save();
-  paintTrail();
-
-  const last = S.idx >= S.questions.length - 1;
-  $('#verdictSlot').innerHTML = `
-    <div class="verdict ${ok ? 'good' : 'bad'}">
-      <div class="stamp">${ok ? '正解' : '殘念'}</div>
-      <div class="txt">
-        <span class="k">${ok ? '答對了' : '正確答案是'}</span>
-        <span class="v">${q.ans.name}</span>
-
-      </div>
-    </div>
-    <button class="btn-next" id="btnNext">${last ? '看成績' : '下一題'}<small>${last ? '' : (S.idx + 2) + ' / ' + S.questions.length}</small></button>`;
-  $('#btnNext').onclick = () => {
-    if (last) enterResult();
-    else { S.idx++; save(); enterQuiz(); }
-  };
-  $('#btnNext').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+/* 切到背景時暫停計時，回來續算 */
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) timerPause();
+  else timerResume();
 });
 
 /* ---------- 成績 ---------- */
@@ -476,34 +536,40 @@ function rank(pct) {
 }
 
 function enterResult() {
+  timerStop();
   show('Result');
   const total = S.questions.length;
   const right = S.answers.filter(a => a.ok).length;
+  const to = S.answers.filter(a => a.timeout).length;
   const wrong = total - right;
-  const pct = Math.round(right / total * 100);
+  const pct = total ? Math.round(right / total * 100) : 0;
+
+  $('#resName').textContent = S.nick || '玩家';
   $('#rankLabel').textContent = rank(pct);
   $('#resRight').textContent = right;
   $('#resTotal').textContent = total;
   $('#resPct').textContent = pct + '%';
   $('#resOk').textContent = right;
   $('#resNg').textContent = wrong;
+  $('#resTo').textContent = to;
 
-  const wrongs = S.answers.filter(a => !a.ok);
-  const wrap = $('#reviewWrap'), list = $('#reviewList');
-  if (wrongs.length) {
-    wrap.classList.remove('hide');
-    list.innerHTML = wrongs.map(w => `
-      <div class="rv">
-        <img src="${w.icon}" alt="">
-        <div class="t">
-          <div class="n">${w.ans}</div>
-          <div class="y">你選了：${w.picked}</div>
-        </div>
-        <div class="x">✕</div>
-      </div>`).join('');
-  } else {
-    wrap.classList.add('hide');
-  }
+  // 全部答案（含答對的）
+  $('#reviewList').innerHTML = S.answers.map(a => {
+    const cls = a.ok ? 'ok' : (a.timeout ? 'timeout' : '');
+    const sub = a.ok ? '你選了：' + a.picked
+              : (a.timeout ? '未作答（超時）' : '你選了：' + a.picked);
+    return `<div class="rv ${cls}">
+      <img src="${a.icon}" alt="">
+      <div class="t">
+        <div class="n">${a.ans}</div>
+        <div class="y">${sub}</div>
+      </div>
+      <div class="x">${a.ok ? '✓' : '✕'}</div>
+    </div>`;
+  }).join('');
+
+  clearSaved();   // 成績已產出，避免下次誤續答
+  window.scrollTo(0, 0);
 }
 
 /* ---------- 啟動 ---------- */
@@ -513,17 +579,24 @@ function boot() {
   const len = Math.min(QUIZ_LEN, skills.length);
   $('#spTotal').innerHTML = `${len}<small>題</small>`;
 
+  const nickEl = $('#nick');
+  try { nickEl.value = localStorage.getItem(NICK_KEY) || ''; } catch (e) {}
+  const syncBtn = () => { $('#btnStart').disabled = !nickEl.value.trim(); };
+  syncBtn();
+  nickEl.addEventListener('input', syncBtn);
+  nickEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && nickEl.value.trim()) { e.preventDefault(); startQuiz(); }
+  });
 
-  $('#btnStart').onclick = newQuiz;
-  $('#btnAgain').onclick = newQuiz;
-  $('#btnHome').onclick = () => { show('Start'); };
-
-  S = load();
-  if (S && S.answers.length < S.questions.length) {
-    // 續答上次未完成的測驗
-    S.idx = Math.min(S.answers.length, S.questions.length - 1);
-    enterQuiz();
-  }
+  $('#btnStart').onclick = startQuiz;
+  $('#btnAgain').onclick = () => { S = null; startQuiz(); };
+  $('#btnHome').onclick = () => {
+    timerStop();
+    if (S) S = null;
+    $('#scStart').classList.add('on');
+    show('Start');
+    syncBtn();
+  };
 
   $('#verChip').onclick = async () => {
     if (!confirm('重新載入並清除快取？')) return;
@@ -536,7 +609,7 @@ function boot() {
   };
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
-  window.__quiz = { newQuiz, state: () => S, buildQuiz, show, enterResult, rank, OPTIONS };
+  window.__quiz = { startQuiz, state: () => S, buildQuiz, show, enterResult, rank, OPTIONS, LIMIT };
 }
 document.addEventListener('DOMContentLoaded', boot);
 </script>
