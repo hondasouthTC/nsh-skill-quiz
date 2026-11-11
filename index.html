@@ -305,11 +305,11 @@ body::before{
 </section>
 
 <div class="toast" id="toast"></div>
-<button class="verchip" id="verChip">v1.0.0</button>
+<button class="verchip" id="verChip">v1.2.0</button>
 
 <script src="skills.js"></script>
 <script>
-window.APP_VERSION = '1.1.0';
+window.APP_VERSION = '1.2.0';
 
 const KEY = 'nshQuiz.v1';
 const QUIZ_LEN = 30;
@@ -513,11 +513,6 @@ function boot() {
   const len = Math.min(QUIZ_LEN, skills.length);
   $('#spTotal').innerHTML = `${len}<small>題</small>`;
 
-  if (window.NSH_DEMO) {
-    const f = $('#demoFlag');
-    f.classList.remove('hide');
-    f.innerHTML = `<b>示範題庫</b>：目前只有 ${skills.length} 個技能，圖示是佔位圖。正式題庫待補上技能圖示後替換。`;
-  }
 
   $('#btnStart').onclick = newQuiz;
   $('#btnAgain').onclick = newQuiz;
