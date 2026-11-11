@@ -35,11 +35,11 @@ body{
 .bgwrap{position:fixed;inset:0;z-index:0;overflow:hidden;background:#0B0D11;pointer-events:none}
 .bgwrap img{
   width:100%;height:100%;object-fit:cover;object-position:center 28%;
-  filter:blur(1px) brightness(1) saturate(1);transform:scale(1.04);
+  filter:blur(1.5px) brightness(.70) saturate(.95);transform:scale(1.04);
 }
 .bgwrap::after{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(11,13,17,.22) 0%,rgba(11,13,17,.48) 38%,rgba(11,13,17,.84) 100%);
+  background:linear-gradient(180deg,rgba(11,13,17,.40) 0%,rgba(11,13,17,.62) 38%,rgba(11,13,17,.90) 100%);
 }
 body::before{
   content:'';position:fixed;inset:0;pointer-events:none;z-index:1;
@@ -235,6 +235,36 @@ body::before{
   background:none;border:0;color:rgba(239,233,217,.22);font-size:9.5px;font-weight:700;letter-spacing:.12em;
   padding:6px;z-index:5;
 }
+/* ===== 未開放倒數 ===== */
+.gate{padding-top:6vh;text-align:center}
+.gate .seal{margin-bottom:22px}
+.gateh1{
+  font-family:"Songti TC","Noto Serif TC",serif;
+  font-size:38px;line-height:1.15;font-weight:700;letter-spacing:.06em;margin:0 0 12px;
+  text-shadow:0 2px 10px rgba(0,0,0,.9),0 6px 30px rgba(0,0,0,.75);
+}
+.gateh1 em{font-style:normal;color:var(--gold)}
+.gateLede{font-size:13px;color:rgba(239,233,217,.6);margin:0;text-shadow:0 1px 6px rgba(0,0,0,.9)}
+.cd{display:flex;gap:8px;justify-content:center;margin:28px 0 0}
+.cdb{
+  flex:1;max-width:82px;padding:13px 6px 11px;border-radius:12px;
+  background:rgba(255,255,255,.055);border:1px solid var(--line);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(4px);
+}
+.cdb b{
+  display:block;font-size:29px;font-weight:800;letter-spacing:-.03em;line-height:1;
+  font-variant-numeric:tabular-nums;color:#fff;
+}
+.cdb span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.18em;color:rgba(239,233,217,.42);margin-top:7px}
+.cd.soon .cdb b{color:var(--gold-lt)}
+.gatetime{
+  margin:22px 0 0;font-size:12.5px;color:rgba(239,233,217,.62);letter-spacing:.02em;
+  display:inline-flex;align-items:center;gap:7px;background:rgba(0,0,0,.34);
+  border:1px solid rgba(239,233,217,.12);border-radius:999px;padding:6px 13px;
+}
+.gatetime i{width:6px;height:6px;border-radius:50%;background:var(--gold);display:block}
+.gateHint{margin:16px 0 0;font-size:11px;color:rgba(239,233,217,.3);letter-spacing:.02em}
+
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
 @media (max-height:720px){
   .hero{padding-top:1vh}
@@ -250,8 +280,27 @@ body::before{
 
 <div class="bgwrap"><img src="bg.jpg" alt=""></div>
 
+<!-- ===== 未開放倒數 ===== -->
+<section class="screen" id="scGate">
+  <div class="gate">
+    <span class="seal">NSH SKILL QUIZ</span>
+    <h1 class="gateh1">尚未<em>開放</em></h1>
+    <p class="gateLede">時間到會自動開場，不用重新整理。</p>
+
+    <div class="cd" id="cd">
+      <div class="cdb"><b id="cdD">00</b><span>天</span></div>
+      <div class="cdb"><b id="cdH">00</b><span>時</span></div>
+      <div class="cdb"><b id="cdM">00</b><span>分</span></div>
+      <div class="cdb"><b id="cdS">00</b><span>秒</span></div>
+    </div>
+
+    <p class="gatetime"><i></i>2026/11/14（六）21:30 開放</p>
+    <p class="gateHint">倒數依這台裝置的時間計算</p>
+  </div>
+</section>
+
 <!-- ===== 開始 ===== -->
-<section class="screen on" id="scStart">
+<section class="screen" id="scStart">
   <div class="hero">
     <span class="seal">NSH SKILL QUIZ</span>
     <h1>逆水寒<br><em>猜技能</em></h1>
@@ -325,17 +374,19 @@ body::before{
 </section>
 
 <div class="toast" id="toast"></div>
-<button class="verchip" id="verChip">v1.4.1</button>
+<button class="verchip" id="verChip">v1.5.0</button>
 
 <script src="skills.js"></script>
 <script>
-window.APP_VERSION = '1.4.1';
+window.APP_VERSION = '1.5.0';
 
 const KEY = 'nshQuiz.v2';
 const NICK_KEY = 'nshQuiz.nick.v1';
 const QUIZ_LEN = 30;
 const OPTIONS = 4;
 const LIMIT = 5000;          // 每題 5 秒
+const OPEN_AT = Date.parse('2026-11-14T21:30:00+08:00');   // 開放時間（台北時間）
+const EARLY = 'nshQuiz.earlyOpen';
 
 const $ = (s, r = document) => r.querySelector(s);
 let S = null;                 // 本次測驗狀態
@@ -596,6 +647,76 @@ function enterResult() {
   window.scrollTo(0, 0);
 }
 
+/* ---------- 倒數閘門 ---------- */
+let gateTimer = null;
+
+function isOpen() {
+  if (Date.now() >= OPEN_AT) return true;
+  try { return sessionStorage.getItem(EARLY) === '1'; } catch (e) { return false; }
+}
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function paintGate() {
+  const ms = Math.max(0, OPEN_AT - Date.now());
+  const d = Math.floor(ms / 86400000);
+  const hh = Math.floor(ms % 86400000 / 3600000);
+  const mm = Math.floor(ms % 3600000 / 60000);
+  const ss = Math.floor(ms % 60000 / 1000);
+  $('#cdD').textContent = pad2(d);
+  $('#cdH').textContent = pad2(hh);
+  $('#cdM').textContent = pad2(mm);
+  $('#cdS').textContent = pad2(ss);
+  $('#cd').classList.toggle('soon', ms <= 3600000);
+  return ms;
+}
+
+function startGate() {
+  show('Gate');
+  stopGate();
+  paintGate();
+  gateTimer = setInterval(() => {
+    const ms = paintGate();
+    if (ms <= 0) { stopGate(); toast('活動開始了，歡迎入場'); resumeApp(); }
+  }, 250);
+
+  // 主辦：長按倒數頁 2.5 秒提早入場，再長按一次收回
+  const zone = $('#scGate');
+  if (zone.dataset.bound) return;
+  zone.dataset.bound = '1';
+  let holdTimer = null;
+  const begin = e => {
+    if (e && e.type === 'mousedown' && e.button !== 0) return;
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(() => {
+      let on = false;
+      try { on = sessionStorage.getItem(EARLY) === '1'; } catch (err) {}
+      try { if (on) sessionStorage.removeItem(EARLY); else sessionStorage.setItem(EARLY, '1'); } catch (err) {}
+      if (on) { stopGate(); startGate(); toast('已收回，恢復倒數'); }
+      else { stopGate(); toast('已提早入場（主辦）'); resumeApp(); }
+    }, 2500);
+  };
+  const end = () => clearTimeout(holdTimer);
+  zone.addEventListener('mousedown', begin);
+  zone.addEventListener('touchstart', begin, { passive: true });
+  ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(ev => zone.addEventListener(ev, end));
+}
+function stopGate() { if (gateTimer) { clearInterval(gateTimer); gateTimer = null; } }
+
+/* ---------- 入場（含續答） ---------- */
+function resumeApp() {
+  stopGate();
+  const prev = load();
+  if (prev && prev.nick && Array.isArray(prev.questions) && prev.questions.length
+      && Array.isArray(prev.answers) && prev.answers.length < prev.questions.length) {
+    S = prev;
+    S.idx = Math.min(S.answers.length, S.questions.length - 1);
+    enterQuiz();
+    return true;
+  }
+  show('Start');
+  return false;
+}
+
 /* ---------- 啟動 ---------- */
 function boot() {
   $('#verChip').textContent = 'v' + window.APP_VERSION;
@@ -633,16 +754,12 @@ function boot() {
   };
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
-  // 重新整理／誤關頁面後續答
-  const prev = load();
-  if (prev && prev.nick && Array.isArray(prev.questions) && prev.questions.length
-      && Array.isArray(prev.answers) && prev.answers.length < prev.questions.length) {
-    S = prev;
-    S.idx = Math.min(S.answers.length, S.questions.length - 1);
-    enterQuiz();
-  }
+  window.__quiz = { startQuiz, state: () => S, buildQuiz, show, enterResult, rank, OPTIONS, LIMIT,
+                    isOpen, startGate, stopGate, resumeApp, OPEN_AT, paintGate };
 
-  window.__quiz = { startQuiz, state: () => S, buildQuiz, show, enterResult, rank, OPTIONS, LIMIT, resume: () => !!S };
+  // 先過閘門；已開放則直接入場（並接續未完成的測驗）
+  if (isOpen()) resumeApp();
+  else startGate();
 }
 document.addEventListener('DOMContentLoaded', boot);
 </script>
