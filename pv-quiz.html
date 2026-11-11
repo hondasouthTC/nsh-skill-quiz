@@ -35,11 +35,11 @@ body{
 .bgwrap{position:fixed;inset:0;z-index:0;overflow:hidden;background:#0B0D11;pointer-events:none}
 .bgwrap img{
   width:100%;height:100%;object-fit:cover;object-position:center 28%;
-  filter:blur(2px) brightness(.92) saturate(1);transform:scale(1.06);
+  filter:blur(1px) brightness(1) saturate(1);transform:scale(1.04);
 }
 .bgwrap::after{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(11,13,17,.28) 0%,rgba(11,13,17,.55) 42%,rgba(11,13,17,.86) 100%);
+  background:linear-gradient(180deg,rgba(11,13,17,.22) 0%,rgba(11,13,17,.48) 38%,rgba(11,13,17,.84) 100%);
 }
 body::before{
   content:'';position:fixed;inset:0;pointer-events:none;z-index:1;
@@ -618,7 +618,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const qs = buildQuiz(window.NSH_SKILLS || [], 30, 42);
     S = { seed: 42, nick: '蔡小明', questions: qs, idx: 6, answers: [] };
     for (let i = 0; i < 6; i++) S.answers.push({ ok: i % 2 === 0, timeout: false, picked: qs[i].opts[0].name, ans: qs[i].ans.name, icon: qs[i].ans.icon });
-    show('Quiz'); paintTrail(); paintQuestion(); timerRun(3200);
+    Promise.all([...new Set(qs.map(q => q.ans.icon))].map(src => new Promise(r => {
+      const im = new Image(); im.onload = im.onerror = r; im.src = src;
+    }))).then(() => { show('Quiz'); paintTrail(); paintQuestion(); timerRun(3800); });
   }, 150);
 });
 </script>
