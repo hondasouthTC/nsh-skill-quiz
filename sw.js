@@ -1,4 +1,4 @@
-const VERSION = '1.5.1';
+const VERSION = '1.6.0';
 const CACHE = 'nshquiz-v' + VERSION;
 const ASSETS = ['./','./index.html','./skills.js','./bg.jpg','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install', e => {
